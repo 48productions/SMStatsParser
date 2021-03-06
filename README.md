@@ -1,8 +1,9 @@
 # Stepmania Stats Parser
 
-SM Stats Parser reads player statistics files (`Stats.xml`) from StepMania and gives you some useful data.
+SM Stats Parser reads player statistics files (`Stats.xml`) from StepMania 5.x and gives you some fun data, like your average grades and most played songs!
 
-Any Stats.xml from Stepmania 5.x (5.1/5.3 included!) should work, and individual player profiles and the global Machine profile should also work.
+
+![Program Screenshot](https://i.imgur.com/jVDnkdZ.png)
 
 ## Features
 
