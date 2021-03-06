@@ -1,0 +1,52 @@
+﻿<Window x:Class="SMStatsParser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SMStatsParser"
+        mc:Ignorable="d"
+        Title="48's SM Stats Parser" Height="573.99" Width="1028.741">
+    <Grid>
+        <TabControl x:Name="tabControl">
+            <TabItem Header="General Data">
+                <Grid Background="#FFE5E5E5">
+                    <Label Content="General Data" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+                    <GroupBox Header="Play Stats&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,100,0,10" Width="248" FontSize="14" FontWeight="Bold">
+                        <Label x:Name="labelGeneralStats" Content="Load a Stats file first!" Margin="0,0,-2,-12" FontWeight="Normal" FontSize="12"/>
+                    </GroupBox>
+                    <GroupBox Header="Grade Stats" HorizontalAlignment="Left" Margin="263,100,0,10" Width="235" FontSize="14" FontWeight="Bold">
+                        <Label x:Name="labelGradeStats" Content="Seriously go load that file" Margin="0,10,-2,3" FontSize="12" FontWeight="Normal"/>
+                    </GroupBox>
+                    <GroupBox Header="High Scores&#xD;&#xA;" HorizontalAlignment="Left" Margin="503,100,0,10" Width="191" FontSize="14" FontWeight="Bold">
+                        <ListBox x:Name="listboxHighScores" Margin="0,0,-2,1" FontSize="12" FontWeight="Normal">
+                            <ListBoxItem Content="1) Load"/>
+                            <ListBoxItem Content="2) a"/>
+                            <ListBoxItem Content="3) file"/>
+                            <ListBoxItem Content="4) plez"/>
+                        </ListBox>
+                    </GroupBox>
+                    <Button x:Name="buttonLoad" Content="Load File..." HorizontalAlignment="Left" Margin="363,10,0,0" VerticalAlignment="Top" Width="100" Click="buttonLoad_Click" Height="39" FontSize="14" FontWeight="Bold"/>
+                    <Label Content="48's StepMania Stats.xml Parser" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="22"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Top Songs/Groups">
+                <Grid Background="#FFE5E5E5">
+                    <ListBox x:Name="listboxTopSongs" Margin="10,86,511,10">
+                        <ListBoxItem Content="1) Generic 2000s Trance Song #542352"/>
+                        <ListBoxItem Content="2) That weird mixtape my friend just kinda found on their PC for some reason"/>
+                    </ListBox>
+                    <Label Content="Top Songs/Groups" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+                    <Label Content="Top Songs" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
+                    <Label Content="Top Groups" HorizontalAlignment="Left" Margin="511,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
+                    <ListBox x:Name="listboxTopGroups" Margin="511,86,10,10" SelectionChanged="listboxTopGroups_SelectionChanged">
+                        <ListBoxItem Content="1) The Default One"/>
+                    </ListBox>
+                    <Label x:Name="labelTopSongsHeader" Content="..." HorizontalAlignment="Left" Margin="93,55,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="labelTopGroupsHeader" Content="..." HorizontalAlignment="Left" Margin="601,55,0,0" VerticalAlignment="Top"/>
+                    <RadioButton x:Name="rbSortAlphabet" Content="Sort Alphabetical" HorizontalAlignment="Left" Margin="232,22,0,0" VerticalAlignment="Top" Checked="rbSortAlphabet_Checked"/>
+                    <RadioButton x:Name="rbSortPlayCount" Content="Sort by Play Count" HorizontalAlignment="Left" Margin="365,22,0,0" VerticalAlignment="Top" IsChecked="True" Checked="rbSortPlayCount_Checked"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
