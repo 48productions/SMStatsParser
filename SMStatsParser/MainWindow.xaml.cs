@@ -183,8 +183,17 @@ namespace SMStatsParser
                 //Now grab some other general data
                 //Console.WriteLine(generalData.SelectSingleNode("Guid").InnerText);
                 XmlNode songsByMode = generalData.SelectSingleNode("NumSongsPlayedByPlayMode");
-                labelGeneralStats.Content =
-                    "Total session count: " + FindXmlNode(generalData, "TotalSessions") +
+                if (FindXmlNode(generalData, "IsMachine") == "1") //If we can find the IsMachine tag and it's 1, note that this is the machine profile
+                {
+                    labelGeneralStats.Content = "Machine profile\n(All song plays/scores on this install)\n\n";
+                } else
+                {
+                    labelGeneralStats.Content = FindXmlNode(generalData, "DisplayName") + "'s profile" +
+                        "\n\nDisplay name: " + FindXmlNode(generalData, "DisplayName") +
+                        "\nLast high score name: " + FindXmlNode(generalData, "LastUsedHighScoreName");
+                }
+                labelGeneralStats.Content +=
+                    "\nTotal session count: " + FindXmlNode(generalData, "TotalSessions") +
                     "\nTotal song plays: " + (int.Parse(FindXmlNode(songsByMode, "Regular")) + int.Parse(FindXmlNode(songsByMode, "Nonstop"))) +
                     "\nTotal recorded grades: " + gradeSum +
                     "\nTotal high scores: " + totalHighScores +
