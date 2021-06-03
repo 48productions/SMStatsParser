@@ -62,7 +62,7 @@ namespace SMStatsParser
         private void buttonLoad_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "Stats.xml file|Stats.xml";
+            dialog.Filter = "Stats.xml file|*.xml";
             if (dialog.ShowDialog() == true) //Try loading the file
             {
                 groups.Clear(); //Clear all our lists from previous stats loads
