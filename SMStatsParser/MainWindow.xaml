@@ -1,6 +1,6 @@
 ﻿<Window x:Class="SMStatsParser.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:oxy="http://oxyplot.org/wpf"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SMStatsParser"
@@ -45,6 +45,11 @@
                     <Label x:Name="labelTopGroupsHeader" Content="..." HorizontalAlignment="Left" Margin="601,55,0,0" VerticalAlignment="Top"/>
                     <RadioButton x:Name="rbSortAlphabet" Content="Sort Alphabetical" HorizontalAlignment="Left" Margin="232,22,0,0" VerticalAlignment="Top" Checked="rbSortAlphabet_Checked"/>
                     <RadioButton x:Name="rbSortPlayCount" Content="Sort by Play Count" HorizontalAlignment="Left" Margin="365,22,0,0" VerticalAlignment="Top" IsChecked="True" Checked="rbSortPlayCount_Checked"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Top Days/Times">
+                <Grid Background="#FFE5E5E5">
+                    <oxy:PlotView x:Name="plotTopDay"></oxy:PlotView>
                 </Grid>
             </TabItem>
         </TabControl>

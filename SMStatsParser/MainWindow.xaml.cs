@@ -16,6 +16,9 @@ using System.IO;
 using Microsoft.Win32;
 using System.Xml;
 using System.Xml.XPath;
+using OxyPlot;
+using OxyPlot.Series;
+using OxyPlot.Axes;
 
 namespace SMStatsParser
 {
@@ -59,6 +62,9 @@ namespace SMStatsParser
         List<Song> allSongs = new List<Song>(); //A list of all the songs we've found (songs are normally stored in groups)
         int totalHighScores = 0; //The total number of high scores counted
 
+        public PlotModel PlotModelTopDays { get; private set; }
+
+
         private void buttonLoad_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
@@ -69,6 +75,26 @@ namespace SMStatsParser
                 users.Clear();
                 allSongs.Clear();
                 totalHighScores = 0;
+
+
+                //Setup for the top days/times graph
+                PlotModelTopDays = new PlotModel { Title = "Top Days" };
+                CategoryAxis axis = new CategoryAxis();
+                axis.ActualLabels.Add("Sun");
+                axis.ActualLabels.Add("Mon");
+                axis.ActualLabels.Add("Tues");
+                axis.ActualLabels.Add("Wed");
+                axis.ActualLabels.Add("Thurs");
+                axis.ActualLabels.Add("Fri");
+                axis.ActualLabels.Add("Sat");
+                PlotModelTopDays.Axes.Add(axis);
+
+                ColumnSeries seriesTopDay = new ColumnSeries();
+                PlotModelTopDays.Series.Add(seriesTopDay);
+
+                int[] topDays = { 0, 0, 0, 0, 0, 0, 0 };
+
+
 
                 XmlDocument statsFile = new XmlDocument();
                 statsFile.Load(new StreamReader(dialog.FileName));
@@ -159,6 +185,17 @@ namespace SMStatsParser
                                                 users.Add(name.InnerText, new User(name.InnerText, 1));
                                             }
                                         }
+
+                                        XmlNode dateTime = highScore.SelectSingleNode("DateTime");
+                                        if (dateTime != null)
+                                        {
+                                            //Take the raw Date string from the XML node
+                                            string rawValue = dateTime.InnerText;//.Split(' ');
+
+                                            //Then: Parse it via DateTime to find the day of week it happened on.
+                                            //Last we'll convert that day of week to an int, index the topDays list, and increment that day by 1
+                                            topDays[(int) DateTime.Parse(rawValue).DayOfWeek]++;
+                                        }
                                     }
                                 }
                             }
@@ -222,7 +259,17 @@ namespace SMStatsParser
                     item.Content = user.HighScores + " - " + userName;
                     listboxHighScores.Items.Add(item);
                 }
-            }
+
+
+                //Top Days chart
+                for (int day = 0; day <= 6; day++) {
+                    seriesTopDay.Items.Add(new ColumnItem(topDays[day], day));
+                }
+
+
+                plotTopDay.Model = PlotModelTopDays;
+
+    }
         }
 
         //Some vaguely safe way to grab the inner text from an XML node with a specific name
