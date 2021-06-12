@@ -63,6 +63,7 @@ namespace SMStatsParser
         int totalHighScores = 0; //The total number of high scores counted
 
         public PlotModel PlotModelTopDays { get; private set; }
+        public PlotModel PlotModelTopTime { get; private set; }
 
 
         private void buttonLoad_Click(object sender, RoutedEventArgs e)
@@ -79,20 +80,30 @@ namespace SMStatsParser
 
                 //Setup for the top days/times graph
                 PlotModelTopDays = new PlotModel { Title = "Top Days" };
-                CategoryAxis axis = new CategoryAxis();
-                axis.ActualLabels.Add("Sun");
-                axis.ActualLabels.Add("Mon");
-                axis.ActualLabels.Add("Tues");
-                axis.ActualLabels.Add("Wed");
-                axis.ActualLabels.Add("Thurs");
-                axis.ActualLabels.Add("Fri");
-                axis.ActualLabels.Add("Sat");
-                PlotModelTopDays.Axes.Add(axis);
+                CategoryAxis axisTopDays = new CategoryAxis();
+                axisTopDays.ActualLabels.Add("Sun");
+                axisTopDays.ActualLabels.Add("Mon");
+                axisTopDays.ActualLabels.Add("Tues");
+                axisTopDays.ActualLabels.Add("Wed");
+                axisTopDays.ActualLabels.Add("Thurs");
+                axisTopDays.ActualLabels.Add("Fri");
+                axisTopDays.ActualLabels.Add("Sat");
+                PlotModelTopDays.Axes.Add(axisTopDays);
 
                 ColumnSeries seriesTopDay = new ColumnSeries();
                 PlotModelTopDays.Series.Add(seriesTopDay);
 
                 int[] topDays = { 0, 0, 0, 0, 0, 0, 0 };
+
+                PlotModelTopTime = new PlotModel { Title = "Top Times" };
+                LineSeries timeSeries = new LineSeries();
+                //TimeSpanAxis axisTopTime = new TimeSpanAxis { Position = AxisPosition.Bottom };
+                DateTimeAxis axisTopTime = new DateTimeAxis { Position = AxisPosition.Bottom, StringFormat = "hhmm tt" };
+                PlotModelTopTime.Axes.Add(axisTopTime);
+                PlotModelTopTime.Series.Add(timeSeries);
+                int[] topTimes = new int[50];
+
+                //timeSeries.Points.Add(new DataPoint(x, y));
 
 
 
@@ -192,9 +203,16 @@ namespace SMStatsParser
                                             //Take the raw Date string from the XML node
                                             string rawValue = dateTime.InnerText;//.Split(' ');
 
-                                            //Then: Parse it via DateTime to find the day of week it happened on.
+                                            //Then: Parse it via DateTime to find the day of week/time it happened on.
+                                            DateTime time = DateTime.Parse(rawValue);
+                                            Console.WriteLine(time.TimeOfDay.ToString());
+
+
                                             //Last we'll convert that day of week to an int, index the topDays list, and increment that day by 1
-                                            topDays[(int) DateTime.Parse(rawValue).DayOfWeek]++;
+                                            topDays[(int)time.DayOfWeek]++;
+
+                                            //Also log the time it happened at, add it to our time graph (1 unit = 30 minutes, so 2x hours + 1x 30 minutes if needed)
+                                            topTimes[(2 * time.TimeOfDay.Hours) + (time.TimeOfDay.Minutes >= 30 ? 1 : 0)]++;
                                         }
                                     }
                                 }
@@ -266,8 +284,13 @@ namespace SMStatsParser
                     seriesTopDay.Items.Add(new ColumnItem(topDays[day], day));
                 }
 
+                for (int time = 0; time < 50; time++) {
+                    timeSeries.Points.Add(new DataPoint(DateTimeAxis.ToDouble(DateTime.Today + TimeSpan.FromHours(time / 2f)), topTimes[time]));
+                }
+
 
                 plotTopDay.Model = PlotModelTopDays;
+                plotTopTime.Model = PlotModelTopTime;
 
     }
         }

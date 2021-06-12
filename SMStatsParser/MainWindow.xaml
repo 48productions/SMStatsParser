@@ -31,25 +31,26 @@
             </TabItem>
             <TabItem Header="Top Songs/Groups">
                 <Grid Background="#FFE5E5E5">
-                    <ListBox x:Name="listboxTopSongs" Margin="10,86,511,10">
+                    <ListBox x:Name="listboxTopSongs" Margin="511,86,10,10">
                         <ListBoxItem Content="1) Generic 2000s Trance Song #542352"/>
                         <ListBoxItem Content="2) That weird mixtape my friend just kinda found on their PC for some reason"/>
                     </ListBox>
                     <Label Content="Top Songs/Groups" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-                    <Label Content="Top Songs" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
-                    <Label Content="Top Groups" HorizontalAlignment="Left" Margin="511,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
-                    <ListBox x:Name="listboxTopGroups" Margin="511,86,10,10" SelectionChanged="listboxTopGroups_SelectionChanged">
+                    <Label Content="Top Songs" HorizontalAlignment="Left" Margin="511,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" RenderTransformOrigin="1.462,0.897"/>
+                    <Label Content="Top Groups" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
+                    <ListBox x:Name="listboxTopGroups" Margin="10,86,511,10" SelectionChanged="listboxTopGroups_SelectionChanged">
                         <ListBoxItem Content="1) The Default One"/>
                     </ListBox>
-                    <Label x:Name="labelTopSongsHeader" Content="..." HorizontalAlignment="Left" Margin="93,55,0,0" VerticalAlignment="Top"/>
-                    <Label x:Name="labelTopGroupsHeader" Content="..." HorizontalAlignment="Left" Margin="601,55,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="labelTopSongsHeader" Content="..." HorizontalAlignment="Left" Margin="594,55,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="labelTopGroupsHeader" Content="..." HorizontalAlignment="Left" Margin="100,55,0,0" VerticalAlignment="Top"/>
                     <RadioButton x:Name="rbSortAlphabet" Content="Sort Alphabetical" HorizontalAlignment="Left" Margin="232,22,0,0" VerticalAlignment="Top" Checked="rbSortAlphabet_Checked"/>
                     <RadioButton x:Name="rbSortPlayCount" Content="Sort by Play Count" HorizontalAlignment="Left" Margin="365,22,0,0" VerticalAlignment="Top" IsChecked="True" Checked="rbSortPlayCount_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Top Days/Times">
                 <Grid Background="#FFE5E5E5">
-                    <oxy:PlotView x:Name="plotTopDay"></oxy:PlotView>
+                    <oxy:PlotView x:Name="plotTopDay" Margin="10,10,0,10" HorizontalAlignment="Left" Width="490"/>
+                    <oxy:PlotView x:Name="plotTopTime" Margin="0,10,10,10" HorizontalAlignment="Right" Width="490"/>
                 </Grid>
             </TabItem>
         </TabControl>
