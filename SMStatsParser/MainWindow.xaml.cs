@@ -30,6 +30,9 @@ namespace SMStatsParser
         public MainWindow()
         {
             InitializeComponent();
+
+            datepickAfter.SelectedDate = DateTime.Parse("January 1 2000 12:00 AM");
+            datepickBefore.SelectedDate = DateTime.Today;
         }
 
         public static string[] gradeTierName = { //Ghetto AF grade tier to string lookup table (using SL's grade tier names)
@@ -52,7 +55,7 @@ namespace SMStatsParser
             "D", //Tier17
         };
 
-        public static int TopSongsMax = 100; //Hard-coded number of songs to cap the "top songs" list at
+        public static int TopSongsMax = 150; //Hard-coded number of songs to cap the "top songs" list at
 
 
         public bool sortAlphabet = false; //Whether we're sorting by alphabet or popularity
@@ -62,8 +65,10 @@ namespace SMStatsParser
         List<Song> allSongs = new List<Song>(); //A list of all the songs we've found (songs are normally stored in groups)
         int totalHighScores = 0; //The total number of high scores counted
 
-        public PlotModel PlotModelTopDays { get; private set; }
-        public PlotModel PlotModelTopTime { get; private set; }
+        public PlotModel PlotModelTopDays { get; private set; } // Configuration for the top days plot
+        public PlotModel PlotModelTopTime { get; private set; } // Configuration for the top times plot
+
+        XmlDocument statsFile; // The XML stats file to use
 
 
         private void buttonLoad_Click(object sender, RoutedEventArgs e)
@@ -71,6 +76,72 @@ namespace SMStatsParser
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "Stats.xml file|*.xml";
             if (dialog.ShowDialog() == true) //Try loading the file
+            {
+                statsFile = new XmlDocument();
+                statsFile.Load(new StreamReader(dialog.FileName));
+
+                RefreshStatsData();
+            }
+        }
+
+        //Some vaguely safe way to grab the inner text from an XML node with a specific name
+        public string FindXmlNode(XmlNode baseNode, string nodeName)
+        {
+            try
+            {
+                return baseNode.SelectSingleNode(nodeName).InnerText;
+            }
+            catch (NullReferenceException)
+            {
+                return "0";
+            }
+        }
+
+        //We've selected a new top group, filter top songs to show only songs from this group
+        private void listboxTopGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ListBoxItem selectedItem = (ListBoxItem)listboxTopGroups.SelectedItem;
+            if (selectedItem != null) {
+                string selectedGroup = selectedItem.Content.ToString();
+                if (selectedGroup != null)
+                {
+                    string[] selectedGroupA = selectedGroup.Split(new[] { '-' }, 2);  //Remove the leading "total song play count" from the group entries - split at the first "-"
+                    if (selectedGroupA.Length >= 2) //If there's two parts of the string (the number part and the group name part), set our selected group to the group name part minus the leading ' '
+                    {
+                        selectedGroup = selectedGroupA[1].Substring(1);
+                    }
+                    if (selectedGroup == "@mem (USB Custom Songs)") { selectedGroup = "@mem"; } //Special case @mem as well
+
+                    Console.WriteLine("Filtering top songs to " + selectedGroup);
+                    if (groups.ContainsKey(selectedGroup))
+                    {
+                        RefreshTopSongs(groups[selectedGroup].Songs.Values.ToList<Song>());
+                    }
+                    else
+                    {
+                        RefreshTopSongs(allSongs);
+                    }
+                }
+            }
+        }
+
+        //Change whether to sort the song/group lists by alphabet or by play count
+        private void rbSortAlphabet_Checked(object sender, RoutedEventArgs e)
+        {
+            sortAlphabet = true;
+            RefreshTopGroups();
+        }
+
+        private void rbSortPlayCount_Checked(object sender, RoutedEventArgs e)
+        {
+            sortAlphabet = false;
+            RefreshTopGroups();
+        }
+
+
+        private void RefreshStatsData()
+        {
+            if (statsFile != null)
             {
                 groups.Clear(); //Clear all our lists from previous stats loads
                 users.Clear();
@@ -104,11 +175,6 @@ namespace SMStatsParser
                 int[] topTimes = new int[50];
 
                 //timeSeries.Points.Add(new DataPoint(x, y));
-
-
-
-                XmlDocument statsFile = new XmlDocument();
-                statsFile.Load(new StreamReader(dialog.FileName));
 
 
                 XmlNode generalData = statsFile.GetElementsByTagName("GeneralData")[0]; //First: Grab the <GeneralData> tag, a few of its children are used
@@ -170,11 +236,11 @@ namespace SMStatsParser
                         //Find total plays for this song
                         int totalPlays = 0;
                         XmlNodeList steps = songNode.SelectNodes("Steps"); //Iterate through each stepchart in this song...
-                        //Console.WriteLine(steps.Count);
+                                                                           //Console.WriteLine(steps.Count);
                         foreach (XmlNode step in steps)
                         {
                             XmlNodeList highScoreLists = step.SelectNodes("HighScoreList"); //...to iterate through the high score lists for each chart
-                            //Console.WriteLine(highScoreLists.Count);
+                                                                                            //Console.WriteLine(highScoreLists.Count);
                             foreach (XmlNode highScoreList in highScoreLists)
                             {
                                 totalPlays += int.Parse(highScoreList.SelectSingleNode("NumTimesPlayed").InnerText); //First tally our total plays counter for this song based on NumTimesPlayed
@@ -184,19 +250,6 @@ namespace SMStatsParser
                                 {
                                     foreach (XmlNode highScore in highScores)
                                     {
-                                        totalHighScores += 1; //Tally the total high scores logged
-                                        XmlNode name = highScore.SelectSingleNode("Name");
-                                        if (name != null)
-                                        {
-                                            if (users.ContainsKey(name.InnerText)) //Also log which user got this score, and add to the tally for their total high score count
-                                            {
-                                                users[name.InnerText].HighScores += 1;
-                                            } else
-                                            {
-                                                users.Add(name.InnerText, new User(name.InnerText, 1));
-                                            }
-                                        }
-
                                         XmlNode dateTime = highScore.SelectSingleNode("DateTime");
                                         if (dateTime != null)
                                         {
@@ -205,7 +258,17 @@ namespace SMStatsParser
 
                                             //Then: Parse it via DateTime to find the day of week/time it happened on.
                                             DateTime time = DateTime.Parse(rawValue);
-                                            Console.WriteLine(time.TimeOfDay.ToString());
+                                            //Console.WriteLine(time.TimeOfDay.ToString());
+
+                                            // If we're limiting score loading to between certain dates...
+                                            if ((bool)cbDateLimitScores.IsChecked)
+                                            {
+                                                // Check if this score was obtained outside of the range of valid dates. If so, NNEEEXT!
+                                                if (time.CompareTo(datepickAfter.SelectedDate) < 0 || time.CompareTo(datepickBefore.SelectedDate) > 0)
+                                                {
+                                                    continue;
+                                                }
+                                            }
 
 
                                             //Last we'll convert that day of week to an int, index the topDays list, and increment that day by 1
@@ -213,6 +276,20 @@ namespace SMStatsParser
 
                                             //Also log the time it happened at, add it to our time graph (1 unit = 30 minutes, so 2x hours + 1x 30 minutes if needed)
                                             topTimes[(2 * time.TimeOfDay.Hours) + (time.TimeOfDay.Minutes >= 30 ? 1 : 0)]++;
+                                        }
+                                        totalHighScores += 1; //Tally the total high scores logged
+
+                                        XmlNode name = highScore.SelectSingleNode("Name");
+                                        if (name != null)
+                                        {
+                                            if (users.ContainsKey(name.InnerText)) //Also log which user got this score, and add to the tally for their total high score count
+                                            {
+                                                users[name.InnerText].HighScores += 1;
+                                            }
+                                            else
+                                            {
+                                                users.Add(name.InnerText, new User(name.InnerText, 1));
+                                            }
                                         }
                                     }
                                 }
@@ -240,18 +317,19 @@ namespace SMStatsParser
                 XmlNode songsByMode = generalData.SelectSingleNode("NumSongsPlayedByPlayMode");
                 if (FindXmlNode(generalData, "IsMachine") == "1") //If we can find the IsMachine tag and it's 1, note that this is the machine profile
                 {
-                    labelGeneralStats.Content = "Machine profile\n(All song plays/scores on this install)\n\n";
-                } else
+                    labelGeneralStats.Content = "MACHINE PROFILE\n(All song plays/scores on this cabinet)";
+                }
+                else
                 {
-                    labelGeneralStats.Content = FindXmlNode(generalData, "DisplayName") + "'s profile" +
+                    labelGeneralStats.Content = FindXmlNode(generalData, "DisplayName") + "'S PROFILE" +
                         "\n\nDisplay name: " + FindXmlNode(generalData, "DisplayName") +
                         "\nLast high score name: " + FindXmlNode(generalData, "LastUsedHighScoreName");
                 }
                 labelGeneralStats.Content +=
-                    "\nTotal session count: " + FindXmlNode(generalData, "TotalSessions") +
+                    "\n\nLoaded high scores: " + totalHighScores +
+                    "\n(after limiter options, left)\n\nTotal File Statistics:\nTotal session count: " + FindXmlNode(generalData, "TotalSessions") +
                     "\nTotal song plays: " + (int.Parse(FindXmlNode(songsByMode, "Regular")) + int.Parse(FindXmlNode(songsByMode, "Nonstop"))) +
                     "\nTotal recorded grades: " + gradeSum +
-                    "\nTotal high scores: " + totalHighScores +
                     "\n\nTotal session time: " + Math.Round(TimeSpan.FromSeconds(int.Parse(FindXmlNode(generalData, "TotalSessionSeconds"))).TotalHours, 1) + " hours" +
                     "\nTotal gameplay time: " + Math.Round(TimeSpan.FromSeconds(int.Parse(FindXmlNode(generalData, "TotalGameplaySeconds"))).TotalHours, 1) + " hours";
 
@@ -280,73 +358,20 @@ namespace SMStatsParser
 
 
                 //Top Days chart
-                for (int day = 0; day <= 6; day++) {
+                for (int day = 0; day <= 6; day++)
+                {
                     seriesTopDay.Items.Add(new ColumnItem(topDays[day], day));
                 }
 
-                for (int time = 0; time < 50; time++) {
+                for (int time = 0; time < 50; time++)
+                {
                     timeSeries.Points.Add(new DataPoint(DateTimeAxis.ToDouble(DateTime.Today + TimeSpan.FromHours(time / 2f)), topTimes[time]));
                 }
 
 
                 plotTopDay.Model = PlotModelTopDays;
                 plotTopTime.Model = PlotModelTopTime;
-
-    }
-        }
-
-        //Some vaguely safe way to grab the inner text from an XML node with a specific name
-        public string FindXmlNode(XmlNode baseNode, string nodeName)
-        {
-            try
-            {
-                return baseNode.SelectSingleNode(nodeName).InnerText;
             }
-            catch (NullReferenceException)
-            {
-                return "0";
-            }
-        }
-
-        //We've selected a new top group, filter top songs to show only songs from this group
-        private void listboxTopGroups_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ListBoxItem selectedItem = (ListBoxItem)listboxTopGroups.SelectedItem;
-            if (selectedItem != null) {
-                string selectedGroup = selectedItem.Content.ToString();
-                if (selectedGroup != null)
-                {
-                    string[] selectedGroupA = selectedGroup.Split(new[] { '-' }, 2);  //Remove the leading "total song play count" from the group entries - split at the first "-"
-                    if (selectedGroupA.Length >= 2) //If there's two parts of the string (the number part and the group name part), set our selected group to the group name part minus the leading ' '
-                    {
-                        selectedGroup = selectedGroupA[1].Substring(1);
-                    }
-                    if (selectedGroup == "@mem (USB Custom Songs)") { selectedGroup = "@mem"; } //Special case @mem as well
-
-                    Console.WriteLine("Filtering top songs to " + selectedGroup);
-                    if (groups.ContainsKey(selectedGroup))
-                    {
-                        RefreshTopSongs(groups[selectedGroup].Songs.Values.ToList<Song>());
-                    }
-                    else
-                    {
-                        RefreshTopSongs(allSongs);
-                    }
-                }
-            }
-        }
-
-        //Change whether to sort the song/group lists by alphabet or by play count
-        private void rbSortAlphabet_Checked(object sender, RoutedEventArgs e)
-        {
-            sortAlphabet = true;
-            RefreshTopGroups();
-        }
-
-        private void rbSortPlayCount_Checked(object sender, RoutedEventArgs e)
-        {
-            sortAlphabet = false;
-            RefreshTopGroups();
         }
 
 
@@ -409,7 +434,20 @@ namespace SMStatsParser
             labelTopSongsHeader.Content = allSongs.Count + " songs (showing " + listboxTopSongs.Items.Count + ")";
         }
 
-        
+        // Enable or disable the "only load scores between x dates" feature 
+        private void cbDateLimitScores_Checked(object sender, RoutedEventArgs e)
+        {
+            datepickBefore.IsEnabled = (bool)cbDateLimitScores.IsChecked;
+            datepickAfter.IsEnabled = (bool)cbDateLimitScores.IsChecked;
+
+            RefreshStatsData();
+        }
+
+        // Update the dates used for the "only load scores between x dates" feature
+        private void datepick_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RefreshStatsData();
+        }
     }
     
 }

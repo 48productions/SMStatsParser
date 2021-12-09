@@ -11,13 +11,13 @@
             <TabItem Header="General Data">
                 <Grid Background="#FFE5E5E5">
                     <Label Content="General Data" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-                    <GroupBox Header="Play Stats&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,100,0,10" Width="248" FontSize="14" FontWeight="Bold">
+                    <GroupBox Header="Play Stats&#xD;&#xA;" HorizontalAlignment="Left" Margin="250,100,0,10" Width="248" FontSize="14" FontWeight="Bold">
                         <Label x:Name="labelGeneralStats" Content="Load a Stats file first!" Margin="0,0,-2,-12" FontWeight="Normal" FontSize="12"/>
                     </GroupBox>
-                    <GroupBox Header="Grade Stats" HorizontalAlignment="Left" Margin="263,100,0,10" Width="235" FontSize="14" FontWeight="Bold">
+                    <GroupBox Header="Grade Stats" HorizontalAlignment="Left" Margin="503,100,0,10" Width="235" FontSize="14" FontWeight="Bold">
                         <Label x:Name="labelGradeStats" Content="Seriously go load that file" Margin="0,10,-2,3" FontSize="12" FontWeight="Normal"/>
                     </GroupBox>
-                    <GroupBox Header="High Scores&#xD;&#xA;" HorizontalAlignment="Left" Margin="503,100,0,10" Width="191" FontSize="14" FontWeight="Bold">
+                    <GroupBox Header="High Scores by Name&#xA;" HorizontalAlignment="Left" Margin="743,100,0,10" Width="191" FontSize="14" FontWeight="Bold">
                         <ListBox x:Name="listboxHighScores" Margin="0,0,-2,1" FontSize="12" FontWeight="Normal">
                             <ListBoxItem Content="1) Load"/>
                             <ListBoxItem Content="2) a"/>
@@ -25,8 +25,17 @@
                             <ListBoxItem Content="4) plez"/>
                         </ListBox>
                     </GroupBox>
-                    <Button x:Name="buttonLoad" Content="Load File..." HorizontalAlignment="Left" Margin="363,10,0,0" VerticalAlignment="Top" Width="100" Click="buttonLoad_Click" Height="39" FontSize="14" FontWeight="Bold"/>
+                    <Button x:Name="buttonLoad" Content="Load File..." HorizontalAlignment="Left" Margin="353,14,0,0" VerticalAlignment="Top" Width="100" Click="buttonLoad_Click" Height="39" FontSize="14" FontWeight="Bold"/>
                     <Label Content="48's StepMania Stats.xml Parser" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="22"/>
+                    <GroupBox Header="Options" HorizontalAlignment="Left" Margin="10,100,0,10" Width="235" FontSize="14" FontWeight="Bold">
+                        <Grid Margin="0,0,0,0">
+                            <CheckBox x:Name="cbDateLimitScores" Content="Only load scores between:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontWeight="Normal" Checked="cbDateLimitScores_Checked"/>
+                            <DatePicker x:Name="datepickAfter" HorizontalAlignment="Left" Margin="49,33,0,0" VerticalAlignment="Top" FontWeight="Normal" Width="143" IsEnabled="False" SelectedDateChanged="datepick_SelectedDateChanged"/>
+                            <DatePicker x:Name="datepickBefore" HorizontalAlignment="Left" Margin="49,94,0,0" VerticalAlignment="Top" FontWeight="Normal" Width="143" IsEnabled="False"/>
+                            <Label Content="and" HorizontalAlignment="Left" Margin="49,60,0,0" VerticalAlignment="Top" FontWeight="Normal"/>
+                            <TextBlock HorizontalAlignment="Left" Margin="49,126,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Normal" FontSize="11" Width="164" Text="* Note: Only affects Top Days/Times, Total High Scores counter, and High Scores by Name counters"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Top Songs/Groups">
