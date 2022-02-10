@@ -67,6 +67,7 @@ namespace SMStatsParser
 
         public PlotModel PlotModelTopDays { get; private set; } // Configuration for the top days plot
         public PlotModel PlotModelTopTime { get; private set; } // Configuration for the top times plot
+        public PlotModel PlotModelTopDifficulty { get; private set; } // Configuration for the top difficulties plot
 
         XmlDocument statsFile; // The XML stats file to use
 
@@ -176,6 +177,22 @@ namespace SMStatsParser
 
                 //timeSeries.Points.Add(new DataPoint(x, y));
 
+
+                //Top Difficulties
+                Dictionary<string, int> topDifficulties = new Dictionary<string, int>();
+                topDifficulties.Add("Beginner", 0);
+                topDifficulties.Add("Easy", 0);
+                topDifficulties.Add("Medium", 0);
+                topDifficulties.Add("Hard", 0);
+                topDifficulties.Add("Challenge", 0);
+                topDifficulties.Add("Edit", 0);
+
+
+                PlotModelTopDifficulty = new PlotModel { Title = "Top Difficulties" };
+                ColumnSeries seriesDifficultyPlayCount = new ColumnSeries();
+                CategoryAxis axisTopDifficulties = new CategoryAxis();
+                PlotModelTopDifficulty.Axes.Add(axisTopDifficulties);
+                PlotModelTopDifficulty.Series.Add(seriesDifficultyPlayCount);
 
                 XmlNode generalData = statsFile.GetElementsByTagName("GeneralData")[0]; //First: Grab the <GeneralData> tag, a few of its children are used
 
@@ -368,9 +385,27 @@ namespace SMStatsParser
                     timeSeries.Points.Add(new DataPoint(DateTimeAxis.ToDouble(DateTime.Today + TimeSpan.FromHours(time / 2f)), topTimes[time]));
                 }
 
+                //Top Difficulties chart
+                XmlNode songsByDifficulty = generalData.SelectSingleNode("NumSongsPlayedByDifficulty");
+                foreach (XmlNode difficulty in songsByDifficulty.ChildNodes)
+                {
+                    topDifficulties[difficulty.Name] = Int32.Parse(difficulty.InnerText);
+                }
+
+                int difficultyId = 0;
+                foreach (string difficulty in topDifficulties.Keys)
+                {
+                    axisTopDifficulties.ActualLabels.Add(difficulty);
+
+                    //Then for each difficulty, add that difficulty's column for play count
+                    seriesDifficultyPlayCount.Items.Add(new ColumnItem(topDifficulties[difficulty], difficultyId));
+                    difficultyId++;
+                    Console.WriteLine(difficulty + "," + topDifficulties[difficulty]);
+                }
 
                 plotTopDay.Model = PlotModelTopDays;
                 plotTopTime.Model = PlotModelTopTime;
+                plotTopDifficulties.Model = PlotModelTopDifficulty;
             }
         }
 
