@@ -33,7 +33,7 @@
                             <DatePicker x:Name="datepickAfter" HorizontalAlignment="Left" Margin="49,33,0,0" VerticalAlignment="Top" FontWeight="Normal" Width="143" IsEnabled="False" SelectedDateChanged="datepick_SelectedDateChanged"/>
                             <DatePicker x:Name="datepickBefore" HorizontalAlignment="Left" Margin="49,94,0,0" VerticalAlignment="Top" FontWeight="Normal" Width="143" IsEnabled="False"/>
                             <Label Content="and" HorizontalAlignment="Left" Margin="49,60,0,0" VerticalAlignment="Top" FontWeight="Normal"/>
-                            <TextBlock HorizontalAlignment="Left" Margin="49,126,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Normal" FontSize="11" Width="164" Text="* Note: Only affects Top Days/Times, Total High Scores counter, and High Scores by Name counters"/>
+                            <TextBlock HorizontalAlignment="Left" Margin="49,126,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Normal" FontSize="11" Width="164" Text="* Note: Only affects Top Days/Times, Total High Scores counter, and High Scores by Name counters. Only affects Total Song/Group Plays when sorting by high scores."/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -54,6 +54,7 @@
                     <Label x:Name="labelTopGroupsHeader" Content="..." HorizontalAlignment="Left" Margin="100,55,0,0" VerticalAlignment="Top"/>
                     <RadioButton x:Name="rbSortAlphabet" Content="Sort Alphabetical" HorizontalAlignment="Left" Margin="232,22,0,0" VerticalAlignment="Top" Checked="rbSortAlphabet_Checked"/>
                     <RadioButton x:Name="rbSortPlayCount" Content="Sort by Play Count" HorizontalAlignment="Left" Margin="365,22,0,0" VerticalAlignment="Top" IsChecked="True" Checked="rbSortPlayCount_Checked"/>
+                    <RadioButton x:Name="rbSortHighScoreCount" Content="Sort by High Score Count" HorizontalAlignment="Left" Margin="495,22,0,0" VerticalAlignment="Top" IsChecked="True" Checked="rbSortHighScoreCount_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Top Days/Times">

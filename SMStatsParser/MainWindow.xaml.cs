@@ -59,6 +59,7 @@ namespace SMStatsParser
 
 
         public bool sortAlphabet = false; //Whether we're sorting by alphabet or popularity
+        public bool sortPlayCount = false; //If we're sorting by poularity, are we going by number of plays or number of high scores?
 
         Dictionary<string, Group> groups = new Dictionary<string, Group>(); //A list of groups we've found
         Dictionary<string, User> users = new Dictionary<string, User>(); //A list of users we've found
@@ -78,9 +79,11 @@ namespace SMStatsParser
             dialog.Filter = "Stats.xml file|*.xml";
             if (dialog.ShowDialog() == true) //Try loading the file
             {
+                Console.WriteLine("Loading " + dialog.FileName);
                 statsFile = new XmlDocument();
                 statsFile.Load(new StreamReader(dialog.FileName));
 
+                Console.WriteLine("Loading complete!");
                 RefreshStatsData();
             }
         }
@@ -136,12 +139,21 @@ namespace SMStatsParser
         private void rbSortPlayCount_Checked(object sender, RoutedEventArgs e)
         {
             sortAlphabet = false;
+            sortPlayCount = true;
+            RefreshTopGroups();
+        }
+
+        private void rbSortHighScoreCount_Checked(object sender, RoutedEventArgs e)
+        {
+            sortAlphabet = false;
+            sortPlayCount = false;
             RefreshTopGroups();
         }
 
 
         private void RefreshStatsData()
         {
+            Console.WriteLine("Refreshing stats data...");
             if (statsFile != null)
             {
                 groups.Clear(); //Clear all our lists from previous stats loads
@@ -251,7 +263,8 @@ namespace SMStatsParser
 
 
                         //Find total plays for this song
-                        int totalPlays = 0;
+                        int songTotalPlays = 0;
+                        int songHighScoreCount = 0;
                         XmlNodeList steps = songNode.SelectNodes("Steps"); //Iterate through each stepchart in this song...
                                                                            //Console.WriteLine(steps.Count);
                         foreach (XmlNode step in steps)
@@ -260,7 +273,7 @@ namespace SMStatsParser
                                                                                             //Console.WriteLine(highScoreLists.Count);
                             foreach (XmlNode highScoreList in highScoreLists)
                             {
-                                totalPlays += int.Parse(highScoreList.SelectSingleNode("NumTimesPlayed").InnerText); //First tally our total plays counter for this song based on NumTimesPlayed
+                                songTotalPlays += int.Parse(highScoreList.SelectSingleNode("NumTimesPlayed").InnerText); //First tally our total plays counter for this song based on NumTimesPlayed
 
                                 XmlNodeList highScores = highScoreList.SelectNodes("HighScore"); //Now iterate through the high scores logged for this chart
                                 if (highScores.Count >= 1)
@@ -280,7 +293,7 @@ namespace SMStatsParser
                                             // If we're limiting score loading to between certain dates...
                                             if ((bool)cbDateLimitScores.IsChecked)
                                             {
-                                                // Check if this score was obtained outside of the range of valid dates. If so, NNEEEXT!
+                                                // Check if this score was obtained outside of the range of valid dates. If so, do NOT process this high score further (excludes it from the day of week/time of day/etc tallies)!
                                                 if (time.CompareTo(datepickAfter.SelectedDate) < 0 || time.CompareTo(datepickBefore.SelectedDate) > 0)
                                                 {
                                                     continue;
@@ -293,6 +306,9 @@ namespace SMStatsParser
 
                                             //Also log the time it happened at, add it to our time graph (1 unit = 30 minutes, so 2x hours + 1x 30 minutes if needed)
                                             topTimes[(2 * time.TimeOfDay.Hours) + (time.TimeOfDay.Minutes >= 30 ? 1 : 0)]++;
+
+                                            //Tally the number of high score plays this song has, too
+                                            songHighScoreCount += 1;
                                         }
                                         totalHighScores += 1; //Tally the total high scores logged
 
@@ -315,11 +331,18 @@ namespace SMStatsParser
 
 
                         //Now finally create a new song entry
-                        Song song = new Song(rawDir[1], rawDir[2], totalPlays);
+                        Song song = new Song(rawDir[1], rawDir[2], songTotalPlays, songHighScoreCount);
 
                         //Now add this song to its group and our total song counter
-                        group.Songs.Add(rawDir[2], song);
-                        group.TotalSongPlays += totalPlays;
+                        if (group.Songs.ContainsKey(rawDir[2])) {
+                            group.Songs[rawDir[2]].TotalPlays += song.TotalPlays;
+                            Console.WriteLine("Duplicate song.rawDir[2]: " + rawDir[2]);
+                        } else
+                        {
+                            group.Songs.Add(rawDir[2], song);
+                        }
+                        group.TotalSongPlays += songTotalPlays;
+                        group.TotalHighScores += songHighScoreCount;
                         allSongs.Add(song);
                     }
                     //break;
@@ -418,9 +441,12 @@ namespace SMStatsParser
             if (sortAlphabet)
             {
                 topGroups = groups.Values.OrderBy(o => o.Name).ToList();
-            } else
+            } else if (sortPlayCount)
             {
                 topGroups = groups.Values.OrderByDescending(o => o.TotalSongPlays).ToList();
+            } else
+            {
+                topGroups = groups.Values.OrderByDescending(o => o.TotalHighScores).ToList();
             }
             ListBoxItem item = new ListBoxItem();
             item.Content = "[Filter all groups]";
@@ -430,7 +456,7 @@ namespace SMStatsParser
                 item = new ListBoxItem();
                 string groupName = group.Name;
                 if (group.Name == "@mem") { group.Name = "@mem (USB Custom Songs)"; } //Special case the @mem group when adding the USB Customs group to explain what @mem is
-                item.Content = group.TotalSongPlays + " - " + groupName;
+                item.Content = group.TotalSongPlays + "\t(" + group.TotalHighScores + ")\t - " + groupName;
                 listboxTopGroups.Items.Add(item);
             }
             labelTopGroupsHeader.Content = topGroups.Count + " groups - Select a group to filter top songs";
@@ -448,9 +474,12 @@ namespace SMStatsParser
             {
                 topSongs = songs.OrderBy(o => o.Name).ToList();
             }
-            else
+            else if (sortPlayCount)
             {
                 topSongs = songs.OrderByDescending(o => o.TotalPlays).ToList();
+            } else
+            {
+                topSongs = songs.OrderByDescending(o => o.HighScores).ToList();
             }
             //ListBoxItem item = new ListBoxItem();
             //item.Content = allSongs.Count + " songs (showing " + TopSongsCount + ")";
@@ -462,7 +491,7 @@ namespace SMStatsParser
                 {
                     Song song = topSongs[i];
                     ListBoxItem item = new ListBoxItem();
-                    item.Content = song.TotalPlays + " - " + song.Group + "/" + song.Name;
+                    item.Content = song.TotalPlays + "\t(" + song.HighScores + ")\t - " + song.Group + "/" + song.Name;
                     listboxTopSongs.Items.Add(item);
                 }
             }
@@ -483,6 +512,7 @@ namespace SMStatsParser
         {
             RefreshStatsData();
         }
+
     }
     
 }

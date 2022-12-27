@@ -23,5 +23,8 @@ namespace SMStatsParser
         //A total count of how many times songs in this group got played
         public int TotalSongPlays { get; set; }
 
+        //A total count of how many high scores this song has
+        public int TotalHighScores { get; set; }
+
     }
 }

@@ -9,11 +9,12 @@ namespace SMStatsParser
     //A song pulled from Stats.xml
     class Song
     {
-        public Song(string group, string name, int totalPlays)
+        public Song(string group, string name, int totalPlays, int highScores)
         {
             Group = group;
             Name = name;
             TotalPlays = totalPlays;
+            HighScores = highScores;
         }
 
         //The group this song belongs to
@@ -24,5 +25,8 @@ namespace SMStatsParser
 
         //The number of times this song has been played
         public int TotalPlays { get; set; }
+
+        //The number of high scores this song has saved
+        public int HighScores { get; set; }
     }
 }
